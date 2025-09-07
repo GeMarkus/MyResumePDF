@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Resume (PDF)</title>
+    <style>
+      /* Full-viewport PDF */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #111;
+      }
+      .wrap {
+        height: 100%;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+      header {
+        padding: 12px 16px;
+        color: #fff;
+        font: 600 16px/1.2 system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+          "Segoe UI Emoji";
+        background: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      header a {
+        color: #a5b4fc;
+        text-decoration: none;
+      }
+      header a:hover {
+        text-decoration: underline;
+      }
+      .pdf {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #222;
+      }
+      /* Small screens: show a hint if embed can't load */
+      .fallback {
+        display: none;
+        padding: 24px;
+        color: #e5e7eb;
+        font: 500 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial;
+      }
+      .no-pdf .fallback {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <span>📄 My Resume</span>
+        <!-- update the href if your PDF lives elsewhere -->
+        <a id="downloadLink" href="resume.pdf" download>Download PDF</a>
+      </header>
+
+      <!-- Method 1: iframe (simple, widely supported) -->
+      <iframe
+        class="pdf"
+        id="pdfFrame"
+        src="resume.pdf#view=FitH&toolbar=1&navpanes=0"
+        title="Resume PDF"
+      ></iframe>
+
+      <!-- Method 2: object fallback (only shows if iframe can't render) -->
+      <object
+        class="pdf"
+        id="pdfObject"
+        data="resume.pdf#view=FitH"
+        type="application/pdf"
+        aria-label="Resume PDF (object fallback)"
+        style="display: none"
+      ></object>
+
+      <!-- Method 3: text fallback -->
+      <div class="fallback" id="fallback">
+        Your browser can't display embedded PDFs.
+        <a id="fallbackLink" href="resume.pdf">Open the file</a> or use the
+        Download button above.
+      </div>
+    </div>
+
+    <script>
+      // Light feature detection to decide which embedding works.
+      (function () {
+        const pdfURL = "resume.pdf"; // ← change to your actual PDF URL if needed
+        document.getElementById("downloadLink").href = pdfURL;
+        document.getElementById("fallbackLink").href = pdfURL;
+
+        // If the browser is iOS Safari older versions, object may work better than iframe.
+        const isIOS =
+          /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        // Try iframe first
+        const iframe = document.getElementById("pdfFrame");
+        const obj = document.getElementById("pdfObject");
+        iframe.src = pdfURL + "#view=FitH&toolbar=1&navpanes=0";
+
+        // After a tick, if iframe didn't load, swap to <object>, else keep iframe.
+        let swapped = false;
+        const timer = setTimeout(() => {
+          try {
+            // If inaccessible or blank, swap
+            if (
+              !iframe.contentWindow ||
+              iframe.contentWindow.length === 0 ||
+              isIOS
+            ) {
+              swapped = true;
+              iframe.style.display = "none";
+              obj.style.display = "block";
+              obj.data = pdfURL + "#view=FitH";
+            }
+          } catch (e) {
+            // Cross-origin or load issue → try object
+            swapped = true;
+            iframe.style.display = "none";
+            obj.style.display = "block";
+            obj.data = pdfURL + "#view=FitH";
+          }
+        }, 400);
+
+        // If even <object> fails, show text fallback
+        obj.addEventListener("error", () => {
+          document.body.classList.add("no-pdf");
+          obj.style.display = "none";
+          iframe.style.display = "none";
+          clearTimeout(timer);
+        });
+      })();
+    </script>
+  </body>
+</html>
